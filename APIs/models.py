@@ -26,7 +26,8 @@ class UserManager(BaseUserManager):
         user.is_staff = True
         user.save(using=self._db)
         return user
-    
+
+
 class User(AbstractBaseUser):
     email = models.EmailField(
         verbose_name='email address',
@@ -37,7 +38,7 @@ class User(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(auto_now_add=True) 
+    last_login = models.DateTimeField(auto_now_add=True)
 
     objects = UserManager()
 
@@ -52,20 +53,15 @@ class User(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
-    
-    def save(self, *args, **kwargs):
-        super(User, self).save(*args, **kwargs)
-        profile = Profile(user=self)
-        profile.save()
-        return self
-    
+
 
 class Profile(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
-    friend_requests = models.ManyToManyField('Profile', related_name='requests')
+    friend_requests = models.ManyToManyField(
+        'Profile', related_name='requests')
     friends = models.ManyToManyField('Profile', related_name='friends_list')
-    
+
     def __str__(self):
         return self.user.email
