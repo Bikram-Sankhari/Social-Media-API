@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
+from django.contrib.auth import get_user_model
 
 
 # Create your models here.
@@ -51,3 +52,20 @@ class User(AbstractBaseUser):
 
     def has_module_perms(self, app_label):
         return True
+    
+    def save(self, *args, **kwargs):
+        super(User, self).save(*args, **kwargs)
+        profile = Profile(user=self)
+        profile.save()
+        return self
+    
+
+class Profile(models.Model):
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    friend_requests = models.ManyToManyField('Profile', related_name='requests')
+    friends = models.ManyToManyField('Profile', related_name='friends_list')
+    
+    def __str__(self):
+        return self.user.email
