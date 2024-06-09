@@ -115,7 +115,7 @@ class Send(APIView):
             if profile in current_profile.friends.all():
                 return Response({'Status': 'Failed', "Message": "You are already Friends!"}, status=status.HTTP_400_BAD_REQUEST)
 
-            elif profile in current_profile.friend_requests.all():
+            elif current_profile in profile.friend_requests.all():
                 return Response({'Status': 'Failed', "Message": "Friend request already sent!"}, status=status.HTTP_400_BAD_REQUEST)
 
             else:
