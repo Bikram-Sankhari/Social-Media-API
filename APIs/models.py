@@ -56,12 +56,12 @@ class User(AbstractBaseUser):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='profile')
     first_name = models.CharField(max_length=100, blank=True)
     last_name = models.CharField(max_length=100, blank=True)
     friend_requests = models.ManyToManyField(
-        'Profile', related_name='requests')
-    friends = models.ManyToManyField('Profile', related_name='friends_list')
+        'Profile', related_name='requests', blank=True)
+    friends = models.ManyToManyField('Profile', related_name='friends_list', blank=True)
 
     def __str__(self):
         return self.user.email

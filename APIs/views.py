@@ -91,3 +91,104 @@ class Search(APIView):
         else:
             serializer = ProfileSerializer(matching_profile)
             return Response(serializer.data)
+
+
+class Send(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            id = request.data['id']
+        except KeyError:
+            return Response({'Status': 'Failed', "Message": "No id provided!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        current_profile = request.user.profile
+        if id == current_profile.id:
+            return Response({'Status': 'Failed', "Message": "You cannot send friend request to yourself!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            profile = Profile.objects.get(id=id)
+        except Profile.DoesNotExist:
+            return Response({'Status': 'Failed', "Message": "No profile found!"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            if profile in current_profile.friends.all():
+                return Response({'Status': 'Failed', "Message": "You are already Friends!"}, status=status.HTTP_400_BAD_REQUEST)
+
+            elif profile in current_profile.friend_requests.all():
+                return Response({'Status': 'Failed', "Message": "Friend request already sent!"}, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                profile.friend_requests.add(current_profile)
+                profile.save()
+                return Response({'Status': 'Success', "Message": "Friend request sent!"}, status=status.HTTP_200_OK)
+
+
+class Accept(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            id = request.data['id']
+        except KeyError:
+            return Response({'Status': 'Failed', "Message": "No id provided!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        current_profile = request.user.profile
+        if id == current_profile.id:
+            return Response({'Status': 'Failed', "Message": "You cannot accept friend request from yourself!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            profile = current_profile.friend_requests.get(id=id)
+        except Profile.DoesNotExist:
+            return Response({'Status': 'Failed', "Message": "No profile found in your Friend Requests!"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            current_profile.friends.add(profile)
+            current_profile.friend_requests.remove(profile)
+            current_profile.save()
+            profile.friends.add(current_profile)
+            profile.save()
+            return Response({'Status': 'Success', "Message": "Friend request accepted!"}, status=status.HTTP_200_OK)
+
+
+class Reject(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            id = request.data['id']
+        except KeyError:
+            return Response({'Status': 'Failed', "Message": "No id provided!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        current_profile = request.user.profile
+        if id == current_profile.id:
+            return Response({'Status': 'Failed', "Message": "You cannot reject friend request from yourself!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            profile = current_profile.friend_requests.get(id=id)
+        except Profile.DoesNotExist:
+            return Response({'Status': 'Failed', "Message": "No profile found in your Friend Requests!"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            current_profile.friend_requests.remove(profile)
+            current_profile.save()
+            return Response({'Status': 'Success', "Message": "Friend request rejected!"}, status=status.HTTP_200_OK)
+        
+
+class ListFriends(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        current_profile = request.user.profile
+        serializer = ProfileSerializer(current_profile.friends.all(), many=True)
+        return Response(serializer.data)
+    
+class ListFriendRequests(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        current_profile = request.user.profile
+        serializer = ProfileSerializer(current_profile.friend_requests.all(), many=True)
+        return Response(serializer.data)
