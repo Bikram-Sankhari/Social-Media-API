@@ -3,6 +3,8 @@
 
 ![](https://img.shields.io/badge/Python-3.12-green) ![](https://img.shields.io/badge/Django-5.0-blue) ![](https://img.shields.io/badge/DRF-3.15-red)
 
+ Watch them in action at - https://youtu.be/YbyxrlfNy3c
+
 ## Table of Contents
   * [Usage](#usage)
     + [Sign Up a New User](#sign-up-a-new-user)
